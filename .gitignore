@@ -1,0 +1,6 @@
+*.log
+*.pyc
+local_settings.py
+config.py
+
+
