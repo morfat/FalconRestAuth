@@ -10,6 +10,7 @@ class ApplicationListResource(BaseResource):
     login_required = False
 
     queryset = Application.all()
+    model = Application
 
     def on_get(self,req, resp):
         db = self.get_db(req)
@@ -22,18 +23,6 @@ class ApplicationListResource(BaseResource):
 
         resp.media = {}
     
-    def on_post(self,req, resp):
-        db = self.get_db(req)
-        data = req.media
-
-        app = db.objects( Application ).create(**data)
-
-
-        print (app)
-
-
-        resp.media = app
-
 
 
     
