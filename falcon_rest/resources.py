@@ -6,16 +6,37 @@ class BaseResource:
     login_required = True
     model = None
     queryset = None
+    serializer_class = None
+
 
     def get_queryset(self,**kwargs):
-        queryset = self.queryset or self.model.all()
+        try:
+            return self.queryset or self.model.all()
+        except TypeError:
+            return self.queryset
 
-        return queryset
-    
 
     def get_db(self, req):
         return req.context['db']
     
+
+    def on_get(self,req, resp):
+        db = self.get_db(req)
+        query_params = req.params 
+
+        results, pagination = self.list(req,resp,db)
+
+        resp.media = {"data": results, "pagination": pagination}
+
+    
+    def list(self,req,resp,db,**kwargs):
+        
+        results = db.objects( self.get_queryset() ).fetch()
+        #do filtering, implement pagination
+        pagination = {}
+
+        return results, pagination 
+
 
     def on_post(self,req, resp):
         db = self.get_db(req)

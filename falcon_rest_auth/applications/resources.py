@@ -12,16 +12,7 @@ class ApplicationListResource(BaseResource):
     queryset = Application.all()
     model = Application
 
-    def on_get(self,req, resp):
-        db = self.get_db(req)
-
-        apps = db.objects( self.get_queryset() ).fetch()
-
-
-        print (apps)
-
-
-        resp.media = {}
+    
     
 
 

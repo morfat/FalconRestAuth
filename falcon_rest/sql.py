@@ -11,7 +11,8 @@ class QuerySet:
     
     def fetch(self, limit = None):
         results = self._connection.execute(self._queryset).fetchall()
-        return results
+        return [ dict(r) for r in results ]
+        
 
         
     def count(self):
@@ -25,7 +26,7 @@ class QuerySet:
         data.update({"id": pk })
 
         return data
-        
+
 
 
 
