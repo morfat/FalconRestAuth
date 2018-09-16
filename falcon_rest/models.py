@@ -1,15 +1,60 @@
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.ext.declarative import has_inherited_table
 
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, String, Boolean,DateTime,ForeignKey
 
 
-class BaseModel:
+import datetime
+
+def utc_now():
+    return datetime.datetime.utcnow()
+
+def utc_timestamp():
+    t = utc_now().timestamp()
+    return str(t).split('.')[0]
+
+def hex_uuid():
+    return uuid.uuid4().hex
+
+def utc_pk():
+    return utc_timestamp() + hex_uuid()
+
+class CRUDMixin:
+    #Column('deleted',Boolean,default = False)
+
+    def add(cls):
+        print (cls.__table__.insert())
+
+class TimestampMixin:
+    created_at = Column(DateTime,nullable = False,default = utc_now)
+    updated_at = Column(DateTime,nullable = False,default = utc_now,onupdate = utc_now)
+    
+
+class BaseTable(CRUDMixin,TimestampMixin):
     @declared_attr
     def __tablename__(cls):
         return cls.__name__.lower() + 's'
         
-    id = Column(Integer, primary_key = True)
+    id = Column(String(50), primary_key = True, default = utc_pk )
 
 
-Base = declarative_base(cls = BaseModel)
+
+
+class HasTenantMixin:
+
+    @declared_attr
+    def tenant_id(cls):
+        return Column(String(50), ForeignKey('tenants.id'))
+
+
+Base = declarative_base(cls = BaseTable)
+ 
+
+
+
+
+
+
+
+
 
