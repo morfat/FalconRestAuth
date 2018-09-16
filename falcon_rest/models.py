@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.ext.declarative import has_inherited_table
 
 from sqlalchemy import Column, Integer, String, Boolean,DateTime,ForeignKey
-
+import uuid
 
 import datetime
 
@@ -19,11 +19,28 @@ def hex_uuid():
 def utc_pk():
     return utc_timestamp() + hex_uuid()
 
+
+
 class CRUDMixin:
     #Column('deleted',Boolean,default = False)
 
-    def add(cls):
-        print (cls.__table__.insert())
+    def add(self):
+        table = self.__table__
+        print (table.insert())
+        print ("Checking self")
+        print (table.select(), self.connection)
+    
+    @classmethod
+    def all(cls):
+        return cls.__table__.select()
+    
+    @classmethod
+    def insert(cls):
+        return cls.__table__.insert()
+
+        
+    
+
 
 class TimestampMixin:
     created_at = Column(DateTime,nullable = False,default = utc_now)

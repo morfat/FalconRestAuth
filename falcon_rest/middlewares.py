@@ -1,6 +1,7 @@
 
 
 from falcon_rest import auth
+from falcon_rest import sql
 
 class CoreMiddleWare:
     def __init__(self,db_engine):
@@ -8,10 +9,13 @@ class CoreMiddleWare:
 
    
     def process_request(self,req,resp):
-        req.context['connection'] = self.db_engine.connect()
+        conn = self.db_engine.connect()
+        
+        req.context['db'] = sql.Db(connection = conn)
+
 
     def process_resource(self,req,resp,resource,params):
-        req.context['transaction'] = req.context['connection'].begin()
+        req.context['transaction'] = req.context['db']._connection.begin()
 
 
     def process_response(self,req,resp,resource,req_succeeded):
@@ -23,7 +27,7 @@ class CoreMiddleWare:
         except:
             pass
         
-        req.context['connection'].close()
+        req.context['db']._connection.close()
 
 
 class CORSMiddleWare:
@@ -111,9 +115,9 @@ class AuthMiddleWare:
             pass
 
         if must_login:
-            auth = auth.validate_access_token( access_token = req.context['access_token'] , secret_key = self.secret_key)
+            auth_data = auth.validate_access_token( access_token = req.context['access_token'] , secret_key = self.secret_key)
 
-            if auth is None:
+            if auth_data is None:
                 raise falcon.HTTPUnauthorized(description = 'Login Required')
     
 
