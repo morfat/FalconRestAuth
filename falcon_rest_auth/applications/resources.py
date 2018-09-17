@@ -4,9 +4,9 @@ import falcon
 from .models import Application
 from .serializers import ApplicationSerializer
 
-from falcon_rest.resources import BaseResource, ListResource, RetrieveResource,DestroyResource
+from falcon_rest.resources import BaseResource, ListResource, RetrieveResource,DestroyResource,CreateResource
 
-class ListApplications(ListResource):
+class ListApplications(ListResource,CreateResource):
 
     login_required = False
 

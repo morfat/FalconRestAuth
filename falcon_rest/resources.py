@@ -48,28 +48,9 @@ class BaseResource:
         return req.context['db']
     
 
-    def on_post(self,req, resp):
-        db = self.get_db(req)
-        posted_data = req.media
 
-        data = self.get_serializer_class()(posted_data).data
-
-        print (data)
-
-        print(self.get_serializer_class().write_protected_fields)
-        
-
-
-        created_data = self.create(req,resp,db,posted_data)
-        resp.media = { "data": [ created_data ] }
-
-        resp.status = falcon.HTTP_CREATED
     
-    def create(self,req,resp,db,posted_data, **kwargs):
-
-        created_data = db.objects( self.model ).create(**posted_data)
-
-        return created_data
+    
 
 
 #MIXINS
@@ -81,6 +62,22 @@ class RetrieveResourceMixin:
         result = self.get_object_or_404(db,pk)
 
         return result
+
+
+class CreateResourceMixin:
+
+    def create(self,req,resp,db,posted_data, **kwargs):
+
+        created = db.objects( self.model ).create(**posted_data)
+
+        #get created object
+        
+        created_object = db.objects( self.model.all() ).filter( id__eq = created.get("id") ).fetch()
+
+
+        return created_object[0]
+
+
 
 class DestroyResourceMixin:
 
@@ -197,6 +194,25 @@ class DestroyResource(DestroyResourceMixin , BaseResource):
         #no content reply
 
         resp.status = falcon.HTTP_NO_CONTENT
+
+
+class CreateResource(CreateResourceMixin , BaseResource):
+
+    def on_post(self,req, resp):
+        db = self.get_db(req)
+        posted_data = req.media
+
+        data = self.get_serializer_class()(posted_data).data
+
+        print (data)
+
+        print(self.get_serializer_class().write_protected_fields)
+        
+
+        created_data = self.create(req,resp,db,posted_data)
+        resp.media = { "data": [ created_data ] }
+
+        resp.status = falcon.HTTP_CREATED
 
 
 
