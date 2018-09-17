@@ -3,6 +3,6 @@
 from .resources import *
 
 routes = [
-    ('',ApplicationListResource() ),
+    ('',ListApplications() ),
 ]
 
