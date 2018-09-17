@@ -102,28 +102,18 @@ class QuerySet:
 
 
     def fetch(self, limit = None):
-        
+
         queryset = self._queryset
-        results = []
-
+       
         if limit:
-            queryset = self._queryset.limit(limit)
-            if limit > 1:
-                results = self._connection.execute(queryset).fetchall()
-            else:
-                result = self._connection.execute(queryset).fetchone()
+            queryset = self._queryset.limit(limit)            
+       
+        results = self._connection.execute(queryset).fetchall()
 
-                return result
-
-        else:
-            results = self._connection.execute(queryset).fetchall()
-
-        
         return [ dict(r) for r in results ]
     
         
-    def count(self):
-        pass
+  
     
     def create(self, **data):
         result =  self._connection.execute( self._queryset.insert().values(**data) )

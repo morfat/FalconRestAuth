@@ -4,7 +4,7 @@ import falcon
 from .models import Application
 from .serializers import ApplicationSerializer
 
-from falcon_rest.resources import BaseResource, ListResource
+from falcon_rest.resources import BaseResource, ListResource, RetrieveResource
 
 class ListApplications(ListResource):
 
@@ -19,7 +19,15 @@ class ListApplications(ListResource):
     serializer_class = ApplicationSerializer
 
 
+class RetrieveApplication(RetrieveResource):
+    login_required = False
+    queryset = Application.all()
     
+    #model = Application
+    
+    serializer_class = ApplicationSerializer
+
+
     
 
 

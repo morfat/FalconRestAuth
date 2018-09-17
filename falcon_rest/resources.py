@@ -2,6 +2,87 @@ import falcon
 
 from .pagination import Paginator
 
+class BaseResource:
+
+    login_required = True
+    model = None
+    queryset = None
+    serializer_class = None
+
+    SEARCH_QUERY_PARAM_NAME = 'q'
+
+    paginator_class = Paginator
+  
+
+    def get_queryset(self,**kwargs):
+        try:
+            return self.queryset or self.model.all()
+        except TypeError:
+            return self.queryset
+    
+    def get_serializer_class(self,**kwargs):
+        return self.serializer_class
+    
+
+    def get_object(self,db,pk):
+        queryset = self.get_queryset()
+
+        
+        results = db.objects( queryset ).filter( id__eq=pk).fetch()
+
+        try:
+            return results[0]
+        except IndexError:
+            return None
+            
+
+    def get_object_or_404(self,db,pk):
+        obj = self.get_object(db,pk)
+
+        if not obj:
+            raise falcon.HTTPNotFound()
+        return obj
+
+
+    def get_db(self, req):
+        return req.context['db']
+    
+
+    def on_post(self,req, resp):
+        db = self.get_db(req)
+        posted_data = req.media
+
+        data = self.get_serializer_class()(posted_data).data
+
+        print (data)
+
+        print(self.get_serializer_class().write_protected_fields)
+        
+
+
+        created_data = self.create(req,resp,db,posted_data)
+        resp.media = { "data": [ created_data ] }
+
+        resp.status = falcon.HTTP_CREATED
+    
+    def create(self,req,resp,db,posted_data, **kwargs):
+
+        created_data = db.objects( self.model ).create(**posted_data)
+
+        return created_data
+
+
+#MIXINS
+
+
+class RetrieveResourceMixin:
+
+    def retrieve(self,req,resp,db,pk,**kwargs):
+        result = self.get_object_or_404(db,pk)
+
+        return result
+
+
 class ListResourceMixin:
 
     filterable_fields = ()
@@ -76,66 +157,6 @@ class ListResourceMixin:
 
 
 
-
-            
-
-
-            
-        
-
-class BaseResource:
-
-    login_required = True
-    model = None
-    queryset = None
-    serializer_class = None
-
-    SEARCH_QUERY_PARAM_NAME = 'q'
-
-    paginator_class = Paginator
-  
-
-    def get_queryset(self,**kwargs):
-        try:
-            return self.queryset or self.model.all()
-        except TypeError:
-            return self.queryset
-    
-    def get_serializer_class(self,**kwargs):
-        return self.serializer_class
-
-
-
-    def get_db(self, req):
-        return req.context['db']
-    
-
-    def on_post(self,req, resp):
-        db = self.get_db(req)
-        posted_data = req.media
-
-        data = self.get_serializer_class()(posted_data).data
-
-        print (data)
-
-        print(self.get_serializer_class().write_protected_fields)
-        
-
-
-        created_data = self.create(req,resp,db,posted_data)
-        resp.media = { "data": [ created_data ] }
-
-        resp.status = falcon.HTTP_CREATED
-    
-    def create(self,req,resp,db,posted_data, **kwargs):
-
-        created_data = db.objects( self.model ).create(**posted_data)
-
-        return created_data
-    
-
-
-
 class ListResource(ListResourceMixin , BaseResource):
 
     def on_get(self,req, resp):
@@ -145,3 +166,15 @@ class ListResource(ListResourceMixin , BaseResource):
         results, pagination = self.list(req,resp,db)
 
         resp.media = {"data": results, "pagination": pagination}
+
+
+class RetrieveResource(RetrieveResourceMixin , BaseResource):
+
+    def on_get(self,req, resp,pk):
+        db = self.get_db(req)
+        result = self.retrieve(req,resp,db,pk)
+
+        resp.media = {"data": [result] }
+
+
+
