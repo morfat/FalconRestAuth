@@ -1,5 +1,5 @@
  
-from sqlalchemy import  or_ , and_,column
+from sqlalchemy import  or_ , and_,column , desc, asc 
 
 
 
@@ -8,7 +8,7 @@ class QuerySet:
     def __init__(self,connection,queryset):
         self._queryset = queryset
         self._connection = connection
-
+    
     def __get_column_filter(self,col_name,col_condition,col_value):
         #example input => ('name','contains','mosoti',)
 
@@ -71,11 +71,54 @@ class QuerySet:
             )
         
         return self
+    
+    def order_by_desc(self, column_name):
+
+        """
+         uses - for desc and without (-) for asc
+         ASC is the default order by 
+         Data type is String
+        """
+
+        self._queryset = self._queryset.order_by( desc( column( column_name ) ) )
+      
+        return self
+    
+    def order_by_asc(self, column_name):
+
+        """
+         ASC is the default order by 
+         Data type is String
+        """
+
+        self._queryset = self._queryset.order_by( asc( column( column_name ) ) )
+      
+        return self
 
     
+    
+
+
+
 
     def fetch(self, limit = None):
-        results = self._connection.execute(self._queryset).fetchall()
+        
+        queryset = self._queryset
+        results = []
+
+        if limit:
+            queryset = self._queryset.limit(limit)
+            if limit > 1:
+                results = self._connection.execute(queryset).fetchall()
+            else:
+                result = self._connection.execute(queryset).fetchone()
+
+                return result
+
+        else:
+            results = self._connection.execute(queryset).fetchall()
+
+        
         return [ dict(r) for r in results ]
     
         

@@ -1,4 +1,7 @@
 import importlib
+from urllib import parse
+
+
 
 def get_module_routes(project_name,path,module_name):
     #returns module  wide routes
@@ -54,3 +57,26 @@ def urlpatterns(project_name,version,app_routes):
 
     return routes
 
+
+
+def replace_query_param(url, key, val):
+    """
+    Given a URL and a key/val pair, set or replace an item in the query
+    parameters of the URL, and return the new URL.
+    """
+    (scheme, netloc, path, query, fragment) = parse.urlsplit(url)
+    query_dict = parse.parse_qs(query, keep_blank_values=True)
+    query_dict[str(key)] = [val]
+    query = parse.urlencode(sorted(list(query_dict.items())), doseq=True)
+    return parse.urlunsplit((scheme, netloc, path, query, fragment))
+
+def remove_query_param(url, key):
+    """
+    Given a URL and a key/val pair, remove an item in the query
+    parameters of the URL, and return the new URL.
+    """
+    (scheme, netloc, path, query, fragment) = parse.urlsplit(url)
+    query_dict = parse.parse_qs(query, keep_blank_values=True)
+    query_dict.pop(key, None)
+    query = parse.urlencode(sorted(list(query_dict.items())), doseq=True)
+    return parse.urlunsplit((scheme, netloc, path, query, fragment))

@@ -1,5 +1,7 @@
 import falcon 
 
+from .pagination import Paginator
+
 class ListResourceMixin:
 
     filterable_fields = ()
@@ -18,14 +20,17 @@ class ListResourceMixin:
         #1.filter
         filtered_queryset_object = self.filter_queryset(queryset_object, filter_params = query_params)
 
-        #2. paginate
+        #2. paginate and get results
 
-
-        pagination = {}
+        results, pagination = self.paginator_class().paginate(
+                                          url = req.uri,
+                                          url_query_params = query_params,
+                                          queryset_object = queryset_object
+                                          )
 
         #3. read db/ execute
 
-        results = filtered_queryset_object.fetch()
+        #results = filtered_queryset_object.fetch()
 
         return results, pagination
     
@@ -87,7 +92,7 @@ class BaseResource:
 
     SEARCH_QUERY_PARAM_NAME = 'q'
 
-
+    paginator_class = Paginator
   
 
     def get_queryset(self,**kwargs):
