@@ -82,6 +82,14 @@ class RetrieveResourceMixin:
 
         return result
 
+class DestroyResourceMixin:
+
+    def destroy(self,req,resp,db,result,**kwargs):
+       
+        #destroy since it exists
+        db.objects( self.model.delete() ).filter( id__eq= result.get("id")).delete()
+
+        return result
 
 class ListResourceMixin:
 
@@ -175,6 +183,20 @@ class RetrieveResource(RetrieveResourceMixin , BaseResource):
         result = self.retrieve(req,resp,db,pk)
 
         resp.media = {"data": [result] }
+
+
+
+class DestroyResource(DestroyResourceMixin , BaseResource):
+
+    def on_delete(self,req, resp,pk):
+        db = self.get_db(req)
+        result = self.get_object_or_404(db,pk)
+
+        self.destroy(req,resp,db,result)
+
+        #no content reply
+
+        resp.status = falcon.HTTP_NO_CONTENT
 
 
 

@@ -38,6 +38,11 @@ class CRUDMixin:
     def insert(cls):
         return cls.__table__.insert()
 
+    @classmethod
+    def delete(cls):
+        return cls.__table__.delete()
+        
+
         
     
 

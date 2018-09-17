@@ -112,6 +112,14 @@ class QuerySet:
 
         return [ dict(r) for r in results ]
     
+    
+    def delete(self):
+        queryset = self._queryset
+        
+        return self._connection.execute(queryset)
+
+        
+    
         
   
     
