@@ -68,7 +68,7 @@ class CreateResourceMixin:
 
     def create(self,req,resp,db,posted_data, **kwargs):
 
-        created = db.objects( self.model ).create(**posted_data)
+        created = db.objects( self.model.insert() ).create(**posted_data)
 
         #get created object
         
@@ -173,6 +173,8 @@ class ListResourceMixin:
         return queryset_object
 
 
+#VIEWS / RESOURCES classes
+
 
 class ListResource(ListResourceMixin , BaseResource):
 
@@ -182,7 +184,10 @@ class ListResource(ListResourceMixin , BaseResource):
 
         results, pagination = self.list(req,resp,db)
 
-        resp.media = {"data": results, "pagination": pagination}
+        serializer = self.get_serializer_class()(results, many = True)
+
+
+        resp.media = {"data": serializer.valid_read_data, "pagination": pagination}
 
 
 class RetrieveResource(RetrieveResourceMixin , BaseResource):
@@ -191,7 +196,12 @@ class RetrieveResource(RetrieveResourceMixin , BaseResource):
         db = self.get_db(req)
         result = self.retrieve(req,resp,db,pk)
 
-        resp.media = {"data": [result] }
+        serializer = self.get_serializer_class()(result)
+       
+        resp.media = {"data": [serializer.valid_read_data] }
+
+
+        
 
 
 

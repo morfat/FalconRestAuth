@@ -130,7 +130,7 @@ class QuerySet:
         
     
     def create(self, **data):
-        result =  self._connection.execute( self._queryset.insert().values(**data) )
+        result =  self._connection.execute( self._queryset.values(**data) )
         
         pk = result.inserted_primary_key[0]
 
