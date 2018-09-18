@@ -8,6 +8,7 @@ routes = urlpatterns(
     version = 'v1',
     app_routes = [
         ('/applications','applications'),
+        ('/tenants','tenants'),
         ]
     )
 
