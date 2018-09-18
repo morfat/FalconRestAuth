@@ -9,6 +9,7 @@ routes = urlpatterns(
     app_routes = [
         ('/applications','applications'),
         ('/tenants','tenants'),
+        ('/organizations','organizations'),
         ]
     )
 
