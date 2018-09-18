@@ -88,6 +88,18 @@ class DestroyResourceMixin:
 
         return result
 
+class UpdateResourceMixin:
+
+    def update(self,req,resp,db,result,data,**kwargs):
+       
+        db.objects( self.model.update() ).filter( id__eq= result.get("id")).update(**data)
+
+        #get updated object
+        
+        updated_object = db.objects( self.model.all() ).filter( id__eq = result.get("id") ).fetch()
+
+        return updated_object
+
 class ListResourceMixin:
 
     filterable_fields = ()
@@ -215,4 +227,33 @@ class CreateResource(CreateResourceMixin , BaseResource):
         resp.status = falcon.HTTP_CREATED
 
 
+
+
+class UpdateResource(UpdateResourceMixin , BaseResource):
+
+    def on_put(self,req, resp,pk):
+        db = self.get_db(req)
+        posted_data = req.media
+        new_data = self.get_serializer_class()(posted_data).data
+
+        print(self.get_serializer_class().write_protected_fields)
+
+        resource = self.get_object_or_404(db,pk)
+
+        updated = self.update(req,resp,db, result = resource, data = new_data)
+        
+        resp.media = { "data": [ updated ] }
+    
+    def on_patch(self,req, resp,pk):
+
+        db = self.get_db(req)
+        new_data = req.media
+       
+        print(self.get_serializer_class().write_protected_fields)
+
+        resource = self.get_object_or_404(db,pk)
+
+        updated = self.update(req,resp,db, result = resource, data = new_data)
+        
+        resp.media = { "data": [ updated ] }
 

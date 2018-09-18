@@ -121,7 +121,13 @@ class QuerySet:
         
     
         
-  
+    def update(self,**data):
+        queryset = self._queryset.values(**data)
+        return self._connection.execute(queryset)
+
+
+
+        
     
     def create(self, **data):
         result =  self._connection.execute( self._queryset.insert().values(**data) )

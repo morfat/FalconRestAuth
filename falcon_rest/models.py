@@ -24,12 +24,7 @@ def utc_pk():
 class CRUDMixin:
     #Column('deleted',Boolean,default = False)
 
-    def add(self):
-        table = self.__table__
-        print (table.insert())
-        print ("Checking self")
-        print (table.select(), self.connection)
-    
+ 
     @classmethod
     def all(cls):
         return cls.__table__.select()
@@ -41,6 +36,11 @@ class CRUDMixin:
     @classmethod
     def delete(cls):
         return cls.__table__.delete()
+    
+    @classmethod
+    def update(cls):
+        return cls.__table__.update()
+
         
 
         
