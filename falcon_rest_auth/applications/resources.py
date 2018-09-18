@@ -10,7 +10,7 @@ class ListApplications(ListResource,CreateResource):
 
     login_required = False
 
-    #queryset = Application.all()
+  
     model = Application
 
     filterable_fields = ('name','is_multitenant',)
@@ -21,8 +21,7 @@ class ListApplications(ListResource,CreateResource):
 
 class RetrieveApplication(RetrieveResource,DestroyResource,UpdateResource):
     login_required = False
-    #queryset = Application.all()
-    
+
     model = Application
 
     serializer_class = ApplicationSerializer

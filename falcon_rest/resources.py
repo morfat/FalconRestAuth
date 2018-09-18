@@ -6,7 +6,6 @@ class BaseResource:
 
     login_required = True
     model = None
-    queryset = None
     serializer_class = None
 
     SEARCH_QUERY_PARAM_NAME = 'q'
@@ -15,10 +14,8 @@ class BaseResource:
   
 
     def get_queryset(self,**kwargs):
-        try:
-            return self.queryset or self.model.all()
-        except TypeError:
-            return self.queryset
+        return self.model.all()
+        
     
     def get_serializer_class(self,**kwargs):
         return self.serializer_class

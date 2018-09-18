@@ -1,5 +1,7 @@
 import serpy
 
+import falcon
+
 class BaseSerializer(serpy.DictSerializer):
 
     id = serpy.StrField( required = False)
@@ -10,14 +12,17 @@ class BaseSerializer(serpy.DictSerializer):
         read_protected_fields = ()
         write_protected_fields = ('id','created_at','updated_at')
     
-    def __is_valid(self):
+    def __is_valid(self,internal = False):
         try:
             self.data #this raises exception if data required is not given
             return True
         except KeyError as ke:
-            print (ke)
-            #raise invalid data exception.
+            if internal:
+                raise KeyError
+            raise falcon.HTTPBadRequest(title = "Missing Request Parameters", description = "{field} is a required field".format( field = ke) )
     
+        
+ 
    
     def __remove_from_data(self,fields, data):
         for k in list(data.keys()):
