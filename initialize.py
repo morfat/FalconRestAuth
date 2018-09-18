@@ -1,11 +1,9 @@
 
 #create all db
 
-from falcon_rest.models import Base
+from falchemy_rest.models import Base
 
 from falcon_rest_auth.settings import DB_ENGINE
-
-from sqlalchemy.orm import sessionmaker
 
 
 
@@ -13,6 +11,7 @@ def init_db():
     from falcon_rest_auth.applications import models
     from falcon_rest_auth.tenants import models
     from falcon_rest_auth.organizations import models
+    from falcon_rest_auth.clients import models
 
 
     drop_all = input("Drop all tables ? Yes / No\t")
