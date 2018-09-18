@@ -8,6 +8,7 @@ class ApplicationSerializer(BaseSerializer):
     name = serpy.StrField()
     is_multitenant = serpy.BoolField()
     
+    
   
 
 

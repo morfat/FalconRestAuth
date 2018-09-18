@@ -20,9 +20,7 @@ def init_db():
         print ("Dropping Tables")
         Base.metadata.drop_all(DB_ENGINE)
     
-    models.Organization.objects(123).add()
-    
-    
+   
     Base.metadata.create_all(DB_ENGINE)
 
 

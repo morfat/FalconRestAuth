@@ -3,8 +3,8 @@
 from .resources import *
 
 routes = [
-    ('',ListApplications() ),
-    ('/{pk}',RetrieveApplication() ),
+    ('',ListCreateApplications() ),
+    ('/{pk}',RetrieveUpdateApplication() ),
 
 ]
 

@@ -4,9 +4,9 @@ import falcon
 from .models import Application
 from .serializers import ApplicationSerializer
 
-from falchemy_rest.resources import BaseResource, ListResource, RetrieveResource,DestroyResource,CreateResource, UpdateResource
+from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
 
-class ListApplications(ListResource,CreateResource):
+class ListCreateApplications(ListCreateResource):
 
     login_required = False
 
@@ -19,7 +19,7 @@ class ListApplications(ListResource,CreateResource):
     serializer_class = ApplicationSerializer
 
 
-class RetrieveApplication(RetrieveResource,DestroyResource,UpdateResource):
+class RetrieveUpdateApplication(RetrieveUpdateResource):
     login_required = False
 
     model = Application

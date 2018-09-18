@@ -1,6 +1,6 @@
 
 
-from falchemy_rest.models import Base , TimestampMixin
+from falchemy_rest.models import Base
 
 from sqlalchemy import Column, String, Boolean
 
