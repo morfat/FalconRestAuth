@@ -1,7 +1,7 @@
 
 
 import serpy
-from falcon_rest.serializers import BaseSerializer
+from falchemy_rest.serializers import BaseSerializer
 
 class ApplicationSerializer(BaseSerializer):
 

@@ -1,6 +1,6 @@
 
 
-from falcon_rest.models import Base,HasTenantMixin
+from falchemy_rest.models import Base,HasTenantMixin
 
 from sqlalchemy import Column, String, Boolean, ForeignKey
 

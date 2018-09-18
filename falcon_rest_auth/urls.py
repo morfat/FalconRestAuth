@@ -1,5 +1,5 @@
 
-from falcon_rest.urls import urlpatterns
+from falchemy_rest.urls import urlpatterns
 from .settings import PROJECT_NAME 
 
 

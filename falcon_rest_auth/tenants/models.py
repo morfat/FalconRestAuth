@@ -1,6 +1,6 @@
 
 
-from falcon_rest.models import Base
+from falchemy_rest.models import Base
 from sqlalchemy import Column, String, Boolean, ForeignKey
 
 

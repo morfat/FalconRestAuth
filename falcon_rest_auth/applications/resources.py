@@ -4,7 +4,7 @@ import falcon
 from .models import Application
 from .serializers import ApplicationSerializer
 
-from falcon_rest.resources import BaseResource, ListResource, RetrieveResource,DestroyResource,CreateResource, UpdateResource
+from falchemy_rest.resources import BaseResource, ListResource, RetrieveResource,DestroyResource,CreateResource, UpdateResource
 
 class ListApplications(ListResource,CreateResource):
 
