@@ -224,15 +224,13 @@ class CreateResource(CreateResourceMixin , BaseResource):
         db = self.get_db(req)
         posted_data = req.media
 
-        data = self.get_serializer_class()(posted_data).data
+        serializer = self.get_serializer_class()(posted_data)
+        created_data = self.create(req,resp,db,posted_data = serializer.valid_write_data )
 
-        print (data)
+        serializer = self.get_serializer_class()(created_data)
+        read_data = serializer.valid_read_data
 
-        print(self.get_serializer_class().write_protected_fields)
-        
-
-        created_data = self.create(req,resp,db,posted_data)
-        resp.media = { "data": [ created_data ] }
+        resp.media = { "data": [ read_data ] }
 
         resp.status = falcon.HTTP_CREATED
 
@@ -241,29 +239,21 @@ class CreateResource(CreateResourceMixin , BaseResource):
 
 class UpdateResource(UpdateResourceMixin , BaseResource):
 
-    def on_put(self,req, resp,pk):
-        db = self.get_db(req)
-        posted_data = req.media
-        new_data = self.get_serializer_class()(posted_data).data
-
-        print(self.get_serializer_class().write_protected_fields)
-
-        resource = self.get_object_or_404(db,pk)
-
-        updated = self.update(req,resp,db, result = resource, data = new_data)
-        
-        resp.media = { "data": [ updated ] }
-    
     def on_patch(self,req, resp,pk):
 
         db = self.get_db(req)
         new_data = req.media
-       
-        print(self.get_serializer_class().write_protected_fields)
+        result = self.get_object_or_404(db,pk)
 
-        resource = self.get_object_or_404(db,pk)
+        write_serializer = self.get_serializer_class()(result)
 
-        updated = self.update(req,resp,db, result = resource, data = new_data)
+        write_data = write_serializer.protect_data( protected_fields = write_serializer.Meta.write_protected_fields , data = new_data)
+
+        updated = self.update(req,resp,db, result = result, data = write_data)
         
-        resp.media = { "data": [ updated ] }
+      
+        read_serializer = self.get_serializer_class()(updated[0])
+
+
+        resp.media = { "data": [ read_serializer.valid_read_data ] }
 
