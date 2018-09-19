@@ -17,6 +17,11 @@ class Client(HasTenantMixin,Base):
     is_active = Column(Boolean, default = True)
     client_type = Column(String(100)) 
 
+    @classmethod
+    def get(cls,pk):
+        return cls.all().where(cls.client_id == pk)
+        
+
 
 
 

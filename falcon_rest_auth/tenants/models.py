@@ -10,7 +10,7 @@ class Tenant(Base):
     application_id = Column(String(50), ForeignKey('applications.id') , nullable = False)
     domain_name = Column(String(50),unique = True, nullable = False)
     business_mode = Column(String(10)) #B2B or B2C
- 
+  
 
 
 

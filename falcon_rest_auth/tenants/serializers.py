@@ -2,6 +2,8 @@
 
 import serpy
 from falchemy_rest.serializers import BaseSerializer
+from jwcrypto import jwk
+import json
 
 class TenantSerializer(BaseSerializer):
     
@@ -10,8 +12,8 @@ class TenantSerializer(BaseSerializer):
     application_id = serpy.StrField()
     domain_name = serpy.StrField()
     business_mode = serpy.StrField()  #B2B or B2C
-
-
+   
+   
     
     
   
