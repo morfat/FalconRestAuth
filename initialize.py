@@ -12,6 +12,7 @@ def init_db():
     from falcon_rest_auth.tenants import models
     from falcon_rest_auth.organizations import models
     from falcon_rest_auth.clients import models
+    from falcon_rest_auth.users import models
 
 
     drop_all = input("Drop all tables ? Yes / No\t")
