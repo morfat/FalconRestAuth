@@ -164,7 +164,7 @@ class LoginUser(CreateResource):
 
                 }
 
-        id_token = { "user_id": user_id, "first_name":user.get("first_name"), "last_name": user.get("last_name") }
+        id_token = { "user_id": user_id, "email": user.get("email") , "phone_number": user.get("phone_number"), "first_name":user.get("first_name"), "last_name": user.get("last_name") }
 
         resp.media = {"access_token": self.generate_encrypted_token(key = self.get_signing_secret(key = OAUTH_SECRET_KEY ), claims = access_token_claims),
                       "token_type": "Bearer", 
