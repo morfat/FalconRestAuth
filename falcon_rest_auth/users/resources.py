@@ -4,9 +4,11 @@ import falcon
 from .models import User , OrganizationUser
 from ..tenants.models import Tenant
 from ..clients.models import Client
+from ..clients.mixins import ClientMixin
+
 from ..organizations.models import Organization
 
-from .serializers import UserSerializer , LoginUserSerializer
+from .serializers import UserSerializer , LoginUserSerializer, UserRegisterSerializer
 
 from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource,CreateResource
 
@@ -107,6 +109,86 @@ class RetrieveUpdateUser(RetrieveUpdateResource):
     serializer_class = UserSerializer
 
 
+
+
+class RegisterUser(CreateResource, ClientMixin):
+    """ 
+
+    Use this endpoint to create new users only. For unauthenticated use only.
+
+    #we expect multisite logins here irrespective of same client
+    Hence the main client cas to be is_first_party = True
+    
+    ON SPA if want to pull clients, create an endpoint to get primary_clisne i.e first_party_client client based on
+    domain name
+    e.g  #tenant = db.objects( Tenant.get(host_name=req.forwarded_host)).fetch()[0]
+
+
+    Then get tenant from the client.
+
+    """
+
+    login_required = False
+
+    model = User
+
+    serializer_class = UserRegisterSerializer
+
+    
+
+
+
+    def perform_create(self,req,db,posted_data):
+        db = self.get_db(req)
+        client_id = posted_data.pop("client_id")
+        client = self.get_client(db,client_id)
+        
+        tenant_id = client.get("tenant_id")
+        email = posted_data.get("email")
+        phone_number = posted_data.get("phone_number")
+        organization_name = posted_data.pop("organization_name",None)
+        organization_id  = None
+
+     
+        if  not phone_number and not email:
+            raise falcon.HTTPBadRequest(title="Missing Username Field", description="Either phone_number or email field is needed")
+
+        
+        posted_data.update({"tenant_id":tenant_id})
+        tenant = db.objects( Tenant.get( pk=tenant_id) ).fetch()[0]
+
+
+        #create user
+        raw_password = self.model.get_random_password()
+        
+        print (raw_password)
+
+        user = db.objects( self.model.insert() ).create(**posted_data)
+        user_id = user.get("id")
+
+        #set user password 
+        self.model.set_password(db =db , user_id = user_id, password = raw_password)
+
+
+        if 'B2B' == tenant.get("business_mode"):
+            if not organization_name:
+                raise falcon.HTTPBadRequest( title="Missing Organization",
+                                             description="organization_name field is required."
+                                            )
+            else:
+                # create organization
+                organization_data = { "name": organization_name , "tenant_id": tenant_id}
+                organization = db.objects( Organization.insert( ) ).create(** organization_data)
+                organization_id = organization.get("id")
+                
+            #add organization user as admin
+
+            db.objects( OrganizationUser.insert() ).create(**{"organization_id": organization_id,"user_id":user_id, "is_admin": True})
+
+        #send user email or sms 
+        #@TODO 
+
+        return user
 
 
 class LoginUser(CreateResource):

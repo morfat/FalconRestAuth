@@ -6,6 +6,10 @@ from .serializers import TenantSerializer
 
 from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
 
+
+
+
+
 class ListCreateTenants(ListCreateResource):
 
     login_required = False

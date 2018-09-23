@@ -6,6 +6,7 @@ routes = [
     ('',ListCreateUsers() ),
     ('/{pk}',RetrieveUpdateUser() ),
     ('/login',LoginUser() ),
+    ('/register',RegisterUser() )
 
 ]
 

@@ -6,8 +6,6 @@ from jwcrypto import jwk
 
 class ClientSerializer(BaseSerializer):
 
-    
-    
     name = serpy.StrField()
     is_first_party = serpy.BoolField()
     client_type = serpy.StrField()
@@ -18,11 +16,14 @@ class ClientSerializer(BaseSerializer):
     description =  serpy.StrField(required=False)
     organization_id = serpy.StrField()
     tenant_id = serpy.StrField()
+    is_confidential = serpy.BoolField( required=False)
+    
+
     
 
     class Meta:
         read_protected_fields = ('client_secret',)
-        write_protected_fields = ('client_id','id','created_at','updated_at',)
+        write_protected_fields = ('client_id','id','is_confidential','created_at','updated_at',)
 
 
     def get_client_secret(self,obj):
