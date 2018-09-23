@@ -49,6 +49,7 @@ class UserRegisterSerializer(BaseSerializer):
 
 
 class LoginUserSerializer(BaseSerializer):
+    
     """ for use in getting access token"""
 
     client_id = serpy.StrField()

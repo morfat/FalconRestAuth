@@ -5,6 +5,8 @@ from .models import User , OrganizationUser
 from ..tenants.models import Tenant
 from ..clients.models import Client
 from ..clients.mixins import ClientMixin
+from ..apis.models import API
+from ..applications.models import Application
 
 from ..organizations.models import Organization
 
@@ -13,11 +15,11 @@ from .serializers import UserSerializer , LoginUserSerializer, UserRegisterSeria
 from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource,CreateResource
 
 
+
 from jwcrypto import jwk,jwt
 
 import json
 import datetime
-from falcon_rest_auth.settings import OAUTH_SECRET_KEY
 
 class ListCreateUsers(ListCreateResource):
     """ 
@@ -140,9 +142,9 @@ class RegisterUser(CreateResource, ClientMixin):
 
     def perform_create(self,req,db,posted_data):
         db = self.get_db(req)
-        client_id = posted_data.pop("client_id")
+        client_id = posted_data.pop("client_id",None)
         client = self.get_client(db,client_id)
-        
+
         tenant_id = client.get("tenant_id")
         email = posted_data.get("email")
         phone_number = posted_data.get("phone_number")
@@ -191,7 +193,8 @@ class RegisterUser(CreateResource, ClientMixin):
         return user
 
 
-class LoginUser(CreateResource):
+class LoginUser(CreateResource,ClientMixin):
+
     serializer_class = LoginUserSerializer
     login_required = False
 
@@ -199,19 +202,30 @@ class LoginUser(CreateResource):
         db = self.get_db(req)
         posted_data = req.media
         serializer = self.get_serializer_class()(posted_data)
-
         data = serializer.valid_write_data
 
         #get client
-        client_id = data.get("client_id")
-
-        client = db.objects( Client.get(pk = client_id) ).fetch()[0]
+        client_id = posted_data.pop("client_id",None)
+        client = self.get_client(db,client_id)
         tenant_id = client.get("tenant_id")
+        tenant = db.objects( Tenant.get( pk=tenant_id) ).fetch()[0]
+        
+        try:
+            api = db.objects( API.default_tenant_api(tenant_id) ).fetch()[0]
+        except IndexError:
+            raise falcon.HTTPBadRequest(description="Default API / Resource Server on every Tenant is needed")
+
+
 
         #get user
         email = data.get("email")
         phone_number = data.get("phone_number")
         password = data.get("password")
+
+        if phone_number is None and email is None:
+            raise falcon.HTTPBadRequest(description="Email or PhoneNumber is needed")
+
+
 
         queryset =  db.objects( User.all() ).filter(tenant_id__eq = tenant_id)
 
@@ -220,35 +234,58 @@ class LoginUser(CreateResource):
         elif phone_number:
             queryset = queryset.filter(phone_number__eq = phone_number)
         
-        user = queryset.fetch()[0]
+        try:
+            user = queryset.fetch()[0]
+        except IndexError:
+            raise falcon.HTTPBadRequest(description="Insufficient user credentials. Valid Username and Password is needed")
+
+        
+        #check if password is valid
+        if not User.is_valid_password(user.get("password"), password):
+            raise falcon.HTTPBadRequest(title="Login Failed",description="Valid Username and Password is needed")
 
 
 
         #claims
-        token_lifetime = 90 #seconds
+        token_lifetime = api.get("token_lifetime_web")
 
-        #audience = 
         issued_at = datetime.datetime.now() #datetime.datetime.utcnow()
         expires_at = issued_at +  datetime.timedelta(seconds = token_lifetime)
 
        
         user_id = user.get("id")
        
+        #make access and id tokens
 
         access_token_claims = { 
-                    #"aud": audience,
                     "iat":int(issued_at.timestamp()),
                     "exp":int(expires_at.timestamp()) ,
                     "client_id":client_id,
                     "tenant_id":tenant_id,
-                    "sub":user_id,
-
-
+                    "sub":user_id
                 }
 
-        id_token = { "user_id": user_id, "email": user.get("email") , "phone_number": user.get("phone_number"), "first_name":user.get("first_name"), "last_name": user.get("last_name") }
+        id_token = { "user_id": user_id, "first_name":user.get("first_name"), "last_name": user.get("last_name") }
+        
+        #get signning key. 
+        api_signing_key = api.get("signing_secret")
+        application_signing_key = None
 
-        resp.media = {"access_token": self.generate_encrypted_token(key = self.get_signing_secret(key = OAUTH_SECRET_KEY ), claims = access_token_claims),
+        if not api_signing_key:
+            #get application signing key
+            application_id = tenant.get("application_id")
+
+            application = db.objects( Application.get( application_id) ).fetch()[0]
+            application_signing_key = application.get("signing_secret")
+
+            print (application_signing_key)
+            print("FOR APP")
+        
+        secret_key = api_signing_key or application_signing_key
+            
+
+
+        resp.media = {"access_token": self.generate_encrypted_token(key = self.get_signing_secret(key = secret_key ), claims = access_token_claims),
                       "token_type": "Bearer", 
                       "expires_in": token_lifetime , 
                       "id_token":id_token

@@ -14,6 +14,11 @@ class API(HasTenantMixin,Base):
     signing_secret = Column(String(100), nullable = True) #if not given, use the app secret
     is_default = Column(Boolean, default = False)
 
+    @classmethod
+    def default_tenant_api(cls,tenant_id):
+        return cls.all().where(cls.tenant_id==tenant_id).where(cls.is_default==True)
+        
+
   
 
 
