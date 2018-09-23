@@ -4,11 +4,8 @@ import serpy
 from falchemy_rest.serializers import BaseSerializer
 
 class UserSerializer(BaseSerializer):
-
-    tenant_id = serpy.StrField(required=False) 
+ 
     organization_id = serpy.StrField(required=False) #when given , we assume we are adding another organization member.
-    is_organization_admin = serpy.StrField(required=False)
-
     email =  serpy.StrField(required = False)
     phone_number =  serpy.StrField(required = False)
 

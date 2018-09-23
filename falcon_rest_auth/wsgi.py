@@ -2,8 +2,9 @@ import falcon
 
 
 from falchemy_rest import middlewares , media_handlers
+from .common.middlewares import CustomAuthMiddleWare
 
-from .settings import DB_ENGINE, OAUTH_SECRET_KEY
+from .settings import DB_ENGINE #, OAUTH_SECRET_KEY
 
 
 from .urls import routes
@@ -12,7 +13,7 @@ def create_application():
     application = falcon.API(media_type='application/json',
                              middleware = [ middlewares.CORSMiddleWare(), 
                                             middlewares.CoreMiddleWare( DB_ENGINE ), 
-                                            middlewares.AuthMiddleWare(secret_key = OAUTH_SECRET_KEY)
+                                            CustomAuthMiddleWare()
                                            ]
                             )
 
