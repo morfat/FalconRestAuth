@@ -58,3 +58,14 @@ class LoginUserSerializer(BaseSerializer):
 
 
     
+class UserChangePasswordSerializer(BaseSerializer):
+    current_password = serpy.StrField()
+    new_password = serpy.StrField()
+
+
+class UserResetPasswordSerializer(BaseSerializer):
+    email =  serpy.StrField(required = False)
+    phone_number =  serpy.StrField(required = False)
+    client_id = serpy.StrField()
+
+

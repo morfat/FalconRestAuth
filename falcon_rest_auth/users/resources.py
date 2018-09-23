@@ -10,7 +10,9 @@ from ..applications.models import Application
 
 from ..organizations.models import Organization
 
-from .serializers import UserSerializer , LoginUserSerializer, UserRegisterSerializer
+from .serializers import UserSerializer , LoginUserSerializer, UserRegisterSerializer,UserChangePasswordSerializer
+from . import serializers
+
 
 from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource,CreateResource
 
@@ -88,7 +90,7 @@ class ListCreateUsers(ListCreateResource):
 
 
 class RetrieveUpdateUser(RetrieveUpdateResource):
-    login_required = False
+    login_required = True
 
     model = User
 
@@ -295,6 +297,110 @@ class LoginUser(CreateResource,ClientMixin):
         return jwk.JWK(**k)
     
 
+
+
+
+class UserChangePassword(CreateResource):
+    
+    """
+    Change Password
+    """
+
+    login_required = True
+
+    model = User
+
+   
+    serializer_class = UserChangePasswordSerializer
+
+    def on_post(self,req,resp):
+
+        db = self.get_db(req)
+        posted_data = req.media
+        serializer = self.get_serializer_class()(posted_data)
+        posted_data = serializer.valid_write_data
+
+        auth = self.get_auth_data(req)
+        user_id = auth.get("sub")
+        current_password = posted_data.get("current_password")
+
+        user = db.objects( self.model.get(user_id) ).fetch()[0]
+
+
+        #check if password is valid
+
+        if not User.is_valid_password(user.get("password"), current_password):
+            raise falcon.HTTPBadRequest(description="Invalid Current Password")
+        
+        #change password
+
+        self.model.set_password(db =db , user_id = user_id, password = posted_data.get("new_password"))
+
+        #@TODO 
+        #send email on password changed successfully
+
+        return {}
+
+
+
+class UserResetPassword(CreateResource,ClientMixin):
+    
+    """
+    Reset user Password
+    """
+
+    login_required = False
+
+    model = User
+
+   
+    serializer_class = serializers.UserResetPasswordSerializer
+
+    def on_post(self,req,resp):
+        db = self.get_db(req)
+        posted_data = req.media
+        serializer = self.get_serializer_class()(posted_data)
+        posted_data = serializer.valid_write_data
+        
+        client_id = posted_data.pop("client_id")
+        client = self.get_client(db,client_id)
+
+        tenant_id = client.get("tenant_id")
+        email = posted_data.get("email")
+        phone_number = posted_data.get("phone_number")
+      
+        if  not phone_number and not email:
+            raise falcon.HTTPBadRequest(title="Missing Username Field", description="Either phone_number or email field is needed")
+
+        
+        posted_data.update({"tenant_id":tenant_id})
+        tenant = db.objects( Tenant.get( pk=tenant_id) ).fetch()[0]
+
+
+        queryset =  db.objects( User.all(tenant_id=tenant_id) )
+
+        if email:
+            queryset = queryset.filter(email__eq = email)
+        elif phone_number:
+            queryset = queryset.filter(phone_number__eq = phone_number)
+        
+        user = None
+
+        try:
+            user = queryset.fetch()[0]
+        except IndexError:
+            raise falcon.HTTPBadRequest(description="Account not found")
+
+        #change password
+        random_password = self.model.get_random_password()
+        print (random_password)
+
+        self.model.set_password(db =db , user_id = user.get("id"), password = random_password)
+
+        #@TODO 
+        #send email on password reset successfully
+
+        return {}
 
 
 

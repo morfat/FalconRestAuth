@@ -6,7 +6,9 @@ routes = [
     ('',ListCreateUsers() ),
     ('/{pk}',RetrieveUpdateUser() ),
     ('/login',LoginUser() ),
-    ('/register',RegisterUser() )
+    ('/register',RegisterUser() ),
+    ('/changePassword',UserChangePassword()),
+    ('/resetPassword',UserResetPassword())
 
 ]
 
