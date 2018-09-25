@@ -44,7 +44,18 @@ class EmailTemplate(HasTenantMixin,Base):
     @classmethod
     def account_created(cls):
         return cls.all().where(cls.name==cls.TEMPLATE_ACCOUNT_CREATED)
-        
+    
+    @classmethod
+    def password_reset(cls):
+        return cls.all().where(cls.name==cls.TEMPLATE_PASSWORD_RESET)
+    
+
+    @classmethod
+    def password_changed(cls):
+        return cls.all().where(cls.name==cls.TEMPLATE_PASSWORD_CHANGED)
+    
+    
+
 
 
 

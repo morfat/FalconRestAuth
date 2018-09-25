@@ -183,7 +183,16 @@ class RegisterUser(CreateResource, ClientMixin):
             db.objects( OrganizationUser.insert() ).create(**{"organization_id": organization_id,"user_id":user_id, "is_admin": True})
 
         #send user email or sms 
-        #@TODO 
+        #@TODO
+        #send email
+        if email:
+
+            provider = db.objects( EmailProvider.gmail() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+            template = db.objects( EmailTemplate.account_created() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+
+            send_gmail.delay(provider,template, recipient=email, body_replace_params = {"password":raw_password})
+
+
 
         return user
 
@@ -323,7 +332,6 @@ class UserChangePassword(CreateResource):
     serializer_class = UserChangePasswordSerializer
 
     def on_post(self,req,resp):
-
         db = self.get_db(req)
         posted_data = req.media
         serializer = self.get_serializer_class()(posted_data)
@@ -331,6 +339,7 @@ class UserChangePassword(CreateResource):
 
         auth = self.get_auth_data(req)
         user_id = auth.get("sub")
+        tenant_id = auth.get("tenant_id")
         current_password = posted_data.get("current_password")
 
         user = db.objects( self.model.get(user_id) ).fetch()[0]
@@ -347,6 +356,17 @@ class UserChangePassword(CreateResource):
 
         #@TODO 
         #send email on password changed successfully
+        email = user.get("email")
+
+        if email:
+            #send email
+            provider = db.objects( EmailProvider.gmail() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+            template = db.objects( EmailTemplate.password_changed() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+
+            send_gmail.delay(provider,template, recipient=email)
+
+
+
 
         return {}
 
@@ -386,7 +406,7 @@ class UserResetPassword(CreateResource,ClientMixin):
         tenant = db.objects( Tenant.get( pk=tenant_id) ).fetch()[0]
 
 
-        queryset =  db.objects( User.all(tenant_id=tenant_id) )
+        queryset = db.objects( User.all() ).filter(tenant_id__eq=tenant_id)
 
         if email:
             queryset = queryset.filter(email__eq = email)
@@ -402,12 +422,22 @@ class UserResetPassword(CreateResource,ClientMixin):
 
         #change password
         random_password = self.model.get_random_password()
+        raw_password = random_password
+
         print (random_password)
 
         self.model.set_password(db =db , user_id = user.get("id"), password = random_password)
 
         #@TODO 
         #send email on password reset successfully
+        if email:
+            #send email
+            provider = db.objects( EmailProvider.gmail() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+            template = db.objects( EmailTemplate.password_reset() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+
+            send_gmail.delay(provider,template, recipient=email, body_replace_params = {"password":raw_password})
+
+
 
         return {}
 
