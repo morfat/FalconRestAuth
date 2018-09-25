@@ -2,7 +2,6 @@
 
 import serpy
 from falchemy_rest.serializers import BaseSerializer , DictField
-import json
 
 
 
@@ -19,7 +18,10 @@ class EmailProviderSerializer(BaseSerializer):
 
 class EmailTemplateSerializer(BaseSerializer):
     name = serpy.StrField()
-   
+    activated = serpy.BoolField()
+    body = serpy.StrField(required=False)
+    subject = serpy.StrField(required=False)
+    
 
 
     

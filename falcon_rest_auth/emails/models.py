@@ -11,24 +11,23 @@ class EmailProvider(HasTenantMixin,Base):
     activated = Column(Boolean, default = False)
     default_from_address = Column(String(100), nullable = False)
     credentials = Column(Text, nullable = False)
-    settings =  Column(Text, nullable = True)
+    settings =  Column(Text, nullable = True) #e.g 
+    
 
     __table_args__ =  ( UniqueConstraint('tenant_id', 'name', name='_unique_emailprovider_per_tenant'),
                        )
 
 
 
-
-       
 class EmailTemplate(HasTenantMixin,Base):
     TEMPLATE_PASSWORD_RESET = 'password_reset'
     TEMPLATE_PASSWORD_CHANGED = 'password_changed'
     TEMPLATE_ACCOUNT_CREATED = 'account_created'
     
     name = Column(String(100), nullable = False) #e.g password_reset,password_change
-    body = Column(Text, nullable = False)
+    body = Column(Text, nullable = True)
     activated = Column(Boolean, default = False)
-    subject = Column(String(100), nullable = False)
+    subject = Column(String(100), nullable = True)
     
     __table_args__ =  ( UniqueConstraint('tenant_id', 'name', name='_unique_emailtemplate_per_tenant'),
                        )
