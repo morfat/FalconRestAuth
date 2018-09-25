@@ -22,6 +22,9 @@ from jwcrypto import jwk,jwt
 
 import json
 import datetime
+from ..emails.models import EmailProvider , EmailTemplate
+
+from ..celery_proj.tasks import send_gmail
 
 class ListCreateUsers(ListCreateResource):
     """ 
@@ -82,6 +85,12 @@ class ListCreateUsers(ListCreateResource):
 
         #send user email or sms 
         #@TODO 
+        if email:
+            #send email
+            provider = db.objects( EmailProvider.gmail() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+            template = db.objects( EmailTemplate.account_created() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+
+            send_gmail.delay(provider,template, recipient=email, body_replace_params = {"password":raw_password})
 
         return user
 
