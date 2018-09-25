@@ -8,7 +8,7 @@ from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
 
 class ListCreateOrganizations(ListCreateResource):
 
-    login_required = False
+    #login_required = False
 
   
     model = Organization
@@ -20,7 +20,7 @@ class ListCreateOrganizations(ListCreateResource):
 
 
 class RetrieveUpdateOrganization(RetrieveUpdateResource):
-    login_required = False
+    #login_required = False
 
     model = Organization
 
