@@ -14,8 +14,7 @@ def init_db():
     from falcon_rest_auth.clients import models
     from falcon_rest_auth.users import models
     from falcon_rest_auth.apis import models
-
-
+    from falcon_rest_auth.emails import models
 
     drop_all = input("Drop all tables ? Yes / No\t")
     if drop_all == 'yes':

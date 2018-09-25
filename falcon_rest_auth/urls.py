@@ -13,6 +13,7 @@ routes = urlpatterns(
         ('/clients','clients'),
         ('/users','users'),
         ('/apis','apis'),
+        ('/emails','emails'),
         ]
     )
 
