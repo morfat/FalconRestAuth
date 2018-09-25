@@ -1,15 +1,9 @@
 
 
 import serpy
-from falchemy_rest.serializers import BaseSerializer
+from falchemy_rest.serializers import BaseSerializer , DictField
 import json
 
-class DictField(serpy.Field):
-    def to_value(self,value):
-        try:
-            return json.loads(value)
-        except TypeError:
-            return json.dumps(value)
 
 
 
