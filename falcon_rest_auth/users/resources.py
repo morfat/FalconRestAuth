@@ -258,6 +258,17 @@ class LoginUser(CreateResource,ClientMixin):
 
        
         user_id = user.get("id")
+
+        user_profile = {  "organization_id":None, "is_organization_admin":None,
+                      "is_staff":user.get("is_staff"),
+                      "is_super_user":user.get("is_super_user"),
+                     "first_name":user.get("first_name"), 
+                     "last_name": user.get("last_name") 
+                     }
+        
+
+
+
        
         #make access and id tokens
 
@@ -266,10 +277,20 @@ class LoginUser(CreateResource,ClientMixin):
                     "exp":int(expires_at.timestamp()) ,
                     "client_id":client_id,
                     "tenant_id":tenant_id,
+                   
                     "sub":user_id
                 }
+        
+        #get user organization
+        user_organization = None
+        try:
+            user_organization = db.objects( OrganizationUser.user_organization(user_id) ).fetch()[0]
+            
+            user_profile.update({"organization_id": user_organization.get("organization_id"), "is_organization_admin": user_organization.get("is_admin")})
+            access_token_claims.update({"user_organization_id": user_organization.get("organization_id"), "user_is_organization_admin": user_organization.get("is_admin")})
+        except:
+            pass
 
-        id_token = { "user_id": user_id, "first_name":user.get("first_name"), "last_name": user.get("last_name") }
         
         #get signning key. 
         api_signing_key = api.get("signing_secret")
@@ -294,7 +315,7 @@ class LoginUser(CreateResource,ClientMixin):
         resp.media = {"access_token": self.generate_encrypted_token(key = self.get_signing_secret(key = secret_key ), claims = access_token_claims),
                       "token_type": "Bearer", 
                       "expires_in": token_lifetime , 
-                      "id_token":id_token
+                      "user_profile":user_profile
                       }
 
 

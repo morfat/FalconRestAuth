@@ -61,6 +61,11 @@ class OrganizationUser(Base):
 
     __table_args__ = ( UniqueConstraint('user_id', 'organization_id', name='_unique_organization_user'),
                      )
+    
+    @classmethod
+    def user_organization(cls,user_id):
+        return cls.all().where(cls.user_id==user_id)
+        
 
 
 
