@@ -13,8 +13,8 @@ from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
 class ListCreateTenants(ListCreateResource):
 
     login_required = False
-
-  
+    multitenant = False #doesnot have tenant_id field
+    
     model = Tenant
 
     filterable_fields = ('application_id',)

@@ -4,13 +4,12 @@ import falcon
 from .models import Organization
 from .serializers import OrganizationSerializer
 
-from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
+from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource , ListResource
 
-class ListCreateOrganizations(ListCreateResource):
+class ListCreateOrganizations(ListResource):
 
     #login_required = False
 
-  
     model = Organization
 
     filterable_fields = ('tenant_id',)

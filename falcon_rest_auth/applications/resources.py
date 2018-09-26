@@ -9,6 +9,7 @@ from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
 class ListCreateApplications(ListCreateResource):
 
     login_required = False
+    multitenant = False
 
   
     model = Application

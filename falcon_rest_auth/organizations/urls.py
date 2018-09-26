@@ -4,7 +4,7 @@ from .resources import *
 
 routes = [
     ('',ListCreateOrganizations() ),
-    ('/{pk}',RetrieveUpdateOrganization() ),
+    #('/{pk}',RetrieveUpdateOrganization() ),
 
 ]
 
