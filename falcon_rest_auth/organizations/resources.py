@@ -12,7 +12,7 @@ class ListCreateOrganizations(ListResource):
 
     model = Organization
 
-    filterable_fields = ('tenant_id',)
+    #filterable_fields = ()
     searchable_fields = ('name',)
 
     serializer_class = OrganizationSerializer
