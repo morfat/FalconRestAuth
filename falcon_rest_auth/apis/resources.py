@@ -8,19 +8,19 @@ from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
 
 class ListCreateAPIs(ListCreateResource):
 
-    login_required = False
+    login_required = True
 
   
     model = API
 
-    filterable_fields = ('tenant_id',)
+    #filterable_fields = ('tenant_id',)
     searchable_fields = ('name',)
 
     serializer_class = APISerializer
 
 
 class RetrieveUpdateAPI(RetrieveUpdateResource):
-    login_required = False
+    login_required = True
 
     model = API
 

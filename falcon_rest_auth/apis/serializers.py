@@ -15,7 +15,7 @@ class APISerializer(BaseSerializer):
     token_lifetime = serpy.IntField(required=False)
     token_lifetime_web = serpy.IntField(required=False)
     signing_secret = serpy.MethodField()
-    tenant_id = serpy.StrField()
+    #tenant_id = serpy.StrField()
     
     class Meta:
         read_protected_fields = ('signing_secret',)

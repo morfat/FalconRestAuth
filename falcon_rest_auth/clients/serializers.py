@@ -15,7 +15,7 @@ class ClientSerializer(BaseSerializer):
     client_id = serpy.StrField(required=False)
     description =  serpy.StrField(required=False)
     organization_id = serpy.StrField()
-    tenant_id = serpy.StrField()
+    #tenant_id = serpy.StrField()
     is_confidential = serpy.BoolField( required=False)
     
 

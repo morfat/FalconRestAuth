@@ -22,19 +22,18 @@ class ClientMixin:
 
 class ListCreateClients(ListCreateResource):
 
-    login_required = False
-
+    login_required = True
   
     model = Client
 
-    filterable_fields = ('tenant_id','organization_id',)
+    filterable_fields = ('organization_id',)
     searchable_fields = ('name',)
 
     serializer_class = ClientSerializer
 
 
 class RetrieveUpdateClient(RetrieveUpdateResource):
-    login_required = False
+    login_required = True
 
     model = Client
 
