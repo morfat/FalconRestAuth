@@ -142,6 +142,8 @@ class RegisterUser(CreateResource, ClientMixin):
 
         tenant_id = client.get("tenant_id")
         email = posted_data.get("email")
+        user_password =  posted_data.get("password")
+
         phone_number = posted_data.get("phone_number")
         organization_name = posted_data.pop("organization_name",None)
         organization_id  = None
@@ -156,7 +158,7 @@ class RegisterUser(CreateResource, ClientMixin):
 
 
         #create user
-        raw_password = self.model.get_random_password()
+        raw_password = user_password if user_password else  self.model.get_random_password()
         
         print (raw_password)
 
@@ -185,16 +187,32 @@ class RegisterUser(CreateResource, ClientMixin):
         #send user email or sms 
         #@TODO
         #send email
-        if email:
+        if email and not user_password:
+            try:
+                provider = db.objects( EmailProvider.gmail() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+                template = db.objects( EmailTemplate.account_created() ).filter(tenant_id__eq=tenant_id).fetch()[0]
 
-            provider = db.objects( EmailProvider.gmail() ).filter(tenant_id__eq=tenant_id).fetch()[0]
-            template = db.objects( EmailTemplate.account_created() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+                send_gmail.delay(provider,template, recipient=email, body_replace_params = {"password":raw_password})
+            except IndexError:
+                print("Email not configured")
+                print("PAssword", raw_password)
 
-            send_gmail.delay(provider,template, recipient=email, body_replace_params = {"password":raw_password})
 
-
+        #to avoid error when client id is not given
+        #req.context['auth'] = {"client_id": client_id, "tenant_id": tenant_id}
 
         return user
+    
+    def on_post(self,req,resp):
+        db = self.get_db(req)
+        posted_data = req.media
+        serializer = self.get_serializer_class()(posted_data)
+        #data = serializer.valid_write_data
+
+        resp.media = self.perform_create(req,db,posted_data)
+
+
+
 
 
 class LoginUser(CreateResource,ClientMixin):
@@ -219,8 +237,6 @@ class LoginUser(CreateResource,ClientMixin):
         except IndexError:
             raise falcon.HTTPBadRequest(description="Default API / Resource Server on every Tenant is needed")
 
-
-
         #get user
         email = data.get("email")
         phone_number = data.get("phone_number")
@@ -228,8 +244,6 @@ class LoginUser(CreateResource,ClientMixin):
 
         if phone_number is None and email is None:
             raise falcon.HTTPBadRequest(description="Email or PhoneNumber is needed")
-
-
 
         queryset =  db.objects( User.all() ).filter(tenant_id__eq = tenant_id)
 

@@ -32,6 +32,7 @@ class UserRegisterSerializer(BaseSerializer):
 
     email =  serpy.StrField(required = False)
     phone_number =  serpy.StrField(required = False)
+    password =  serpy.StrField(required = False)
 
     first_name =  serpy.StrField(required = False)
     last_name =  serpy.StrField(required = False) 

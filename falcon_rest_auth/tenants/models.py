@@ -5,7 +5,7 @@ from sqlalchemy import Column, String, Boolean, ForeignKey
 
 
 class Tenant(Base):
-    name = Column(String(100), nullable = False,unique = True)
+    name = Column(String(100), nullable = False,unique = True) #change to per application
     is_super_tenant = Column(Boolean, default = False)
     application_id = Column(String(50), ForeignKey('applications.id') , nullable = False)
     host_name = Column(String(100),unique = True, nullable = False) #web origin of client requests
