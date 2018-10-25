@@ -5,7 +5,7 @@ from .settings import PROJECT_NAME
 
 routes = urlpatterns(
     project_name = PROJECT_NAME,
-    version = 'v2',
+    version = 'v2.0',
     app_routes = [
         ('/applications','applications'),
         ('/tenants','tenants'),
