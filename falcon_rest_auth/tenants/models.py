@@ -1,16 +1,20 @@
 
 
 from falchemy_rest.models import Base
-from sqlalchemy import Column, String, Boolean, ForeignKey
+from sqlalchemy import Column, String, Boolean, ForeignKey , UniqueConstraint
 
 
 class Tenant(Base):
     name = Column(String(100), nullable = False,unique = True) #change to per application
     is_super_tenant = Column(Boolean, default = False)
     application_id = Column(String(50), ForeignKey('applications.id') , nullable = False)
-    host_name = Column(String(100),unique = True, nullable = False) #web origin of client requests
+    host_name = Column(String(100), nullable = False) #web origin of client requests
     business_mode = Column(String(10), nullable = False,default = 'B2C') #B2B or B2C
     
+    
+    __table_args__ =  ( UniqueConstraint('application_id', 'host_name', name='_unique_hostname_per_app'),
+                      )
+
 
     @classmethod
     def get(cls,host_name=None , pk=None):
