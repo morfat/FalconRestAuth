@@ -27,7 +27,8 @@ class UserSerializer(BaseSerializer):
 
 
 class UserRegisterSerializer(BaseSerializer):
-    client_id = serpy.StrField(required=False)
+    host_name = serpy.StrField() # the domain and port of the tenant
+    #client_id = serpy.StrField(required=False)
     organization_name = serpy.StrField(required=False) #needed for  for B2B tenant business mode type.
 
     email =  serpy.StrField(required = False)
@@ -63,8 +64,9 @@ class UserChangePasswordSerializer(BaseSerializer):
 
 
 class UserResetPasswordSerializer(BaseSerializer):
+    host_name = serpy.StrField() # the domain and port of the tenant
     email =  serpy.StrField(required = False)
     phone_number =  serpy.StrField(required = False)
-    client_id = serpy.StrField()
+    #client_id = serpy.StrField()
 
 

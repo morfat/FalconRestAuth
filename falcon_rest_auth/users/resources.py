@@ -26,6 +26,15 @@ from ..emails.models import EmailProvider , EmailTemplate
 
 from ..celery_proj.tasks import send_gmail
 
+class AuthMixin:
+    """ to be used in auth classes for common methods """
+
+    def get_tenant(self,db,host_name):
+        return db.objects( Tenant.all() ).filter( host_name__eq=host_name ).fetch_one()
+    
+    def get_appication(self, db, application_id):
+        return db.objects( Application.all() ).filter( id__eq=application_id).fetch_one()
+
 class ListCreateUsers(ListCreateResource):
     """ 
     
@@ -108,7 +117,7 @@ class RetrieveUpdateUser(RetrieveUpdateResource):
 
 
 
-class RegisterUser(CreateResource, ClientMixin):
+class RegisterUser(CreateResource, ClientMixin, AuthMixin):
     """ 
 
     Use this endpoint to create new users only. For unauthenticated use only.
@@ -137,22 +146,32 @@ class RegisterUser(CreateResource, ClientMixin):
 
     def perform_create(self,req,db,posted_data):
         db = self.get_db(req)
-        client_id = posted_data.pop("client_id",None)
-        client = self.get_client(db,client_id)
 
-        tenant_id = client.get("tenant_id")
+        #client_id = posted_data.pop("client_id",None)
+        #client = self.get_client(db,client_id)
+        host_name = posted_data.pop("host_name")
+        agree = posted_data.pop("agree", None)
+        tenant = self.get_tenant(db,host_name)
+        tenant_id = tenant.get("id")
+        application = self.get_appication(db,application_id=tenant.get("application_id") )
+        auth_username_field = application.get("auth_username_field")
+
         email = posted_data.get("email")
         user_password =  posted_data.get("password")
-
         phone_number = posted_data.get("phone_number")
         organization_name = posted_data.pop("organization_name",None)
         organization_id  = None
 
-     
-        if  not phone_number and not email:
-            raise falcon.HTTPBadRequest(title="Missing Username Field", description="Either phone_number or email field is needed")
+        #check to know what 
+        if auth_username_field == 'email':
+            if email is None:
+                raise falcon.HTTPBadRequest(description="Email is needed")
 
-        
+        elif auth_username_field == 'phone_number':
+            if phone_number is None:
+                raise falcon.HTTPBadRequest(description="Phone Number is needed")
+        #
+
         posted_data.update({"tenant_id":tenant_id})
         tenant = db.objects( Tenant.get( pk=tenant_id) ).fetch()[0]
 
@@ -209,7 +228,7 @@ class RegisterUser(CreateResource, ClientMixin):
         serializer = self.get_serializer_class()(posted_data)
         #data = serializer.valid_write_data
 
-        resp.media = self.perform_create(req,db,posted_data)
+        resp.media = { "data": [ self.perform_create(req,db,posted_data) ] }
 
 
 
@@ -404,7 +423,7 @@ class UserChangePassword(CreateResource):
 
 
 
-class UserResetPassword(CreateResource,ClientMixin):
+class UserResetPassword(CreateResource,ClientMixin, AuthMixin):
     
     """
     Reset user Password
@@ -422,20 +441,34 @@ class UserResetPassword(CreateResource,ClientMixin):
         posted_data = req.media
         serializer = self.get_serializer_class()(posted_data)
         posted_data = serializer.valid_write_data
-        
-        client_id = posted_data.pop("client_id")
-        client = self.get_client(db,client_id)
 
-        tenant_id = client.get("tenant_id")
+        host_name = posted_data.pop("host_name")
+
+        tenant = self.get_tenant(db,host_name)
+        tenant_id = tenant.get("id")
+        application = self.get_appication(db,application_id=tenant.get("application_id") )
+        auth_username_field = application.get("auth_username_field")
+
+        
+        #client_id = posted_data.pop("client_id")
+        #client = self.get_client(db,client_id)
+
+        #tenant_id = client.get("tenant_id")
         email = posted_data.get("email")
         phone_number = posted_data.get("phone_number")
-      
-        if  not phone_number and not email:
-            raise falcon.HTTPBadRequest(title="Missing Username Field", description="Either phone_number or email field is needed")
 
-        
+        #check to know what 
+        if auth_username_field == 'email':
+            if email is None:
+                raise falcon.HTTPBadRequest(description="Email is needed")
+
+        elif auth_username_field == 'phone_number':
+            if phone_number is None:
+                raise falcon.HTTPBadRequest(description="Phone Number is needed")
+        #
+
         posted_data.update({"tenant_id":tenant_id})
-        tenant = db.objects( Tenant.get( pk=tenant_id) ).fetch()[0]
+        #tenant = db.objects( Tenant.get( pk=tenant_id) ).fetch()[0]
 
 
         queryset = db.objects( User.all() ).filter(tenant_id__eq=tenant_id)
@@ -463,27 +496,13 @@ class UserResetPassword(CreateResource,ClientMixin):
         #@TODO 
         #send email on password reset successfully
         if email:
-            #send email
-            provider = db.objects( EmailProvider.gmail() ).filter(tenant_id__eq=tenant_id).fetch()[0]
-            template = db.objects( EmailTemplate.password_reset() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+            try:
+                #send email
+                provider = db.objects( EmailProvider.gmail() ).filter(tenant_id__eq=tenant_id).fetch()[0]
+                template = db.objects( EmailTemplate.password_reset() ).filter(tenant_id__eq=tenant_id).fetch()[0]
 
-            send_gmail.delay(provider,template, recipient=email, body_replace_params = {"password":raw_password})
-
-
+                send_gmail.delay(provider,template, recipient=email, body_replace_params = {"password":raw_password})
+            except IndexError:
+                print("provider not configured")
 
         return {}
-
-
-
-
-
-    
-
-
-    
-   
-
-        
-
-
-
