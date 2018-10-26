@@ -47,15 +47,13 @@ class UserRegisterSerializer(BaseSerializer):
 
 
 class LoginUserSerializer(BaseSerializer):
-    
+
     """ for use in getting access token"""
 
-    client_id = serpy.StrField()
+    host_name = serpy.StrField() # the domain and port of the tenant
     email =  serpy.StrField(required = False)
     phone_number =  serpy.StrField(required = False)
     password = serpy.StrField()
-    #audience = serpy.StrField() #the tenat full uri that expects this token
-
 
 
     

@@ -216,7 +216,7 @@ class RegisterUser(CreateResource, ClientMixin):
 
 
 class LoginUser(CreateResource,ClientMixin):
-
+    
     serializer_class = LoginUserSerializer
     login_required = False
 
@@ -227,42 +227,48 @@ class LoginUser(CreateResource,ClientMixin):
         data = serializer.valid_write_data
 
         #get client
-        client_id = posted_data.pop("client_id",None)
-        client = self.get_client(db,client_id)
-        tenant_id = client.get("tenant_id")
-        tenant = db.objects( Tenant.get( pk=tenant_id) ).fetch()[0]
+        host_name = posted_data.get("host_name")
+        tenant = db.objects( Tenant.all() ).filter( host_name__eq=host_name ).fetch_one()
+        tenant_id = tenant.get("id")
+        application_id = tenant.get("application_id")
+        application = db.objects( Application.all() ).filter( id__eq=application_id).fetch_one()
         
         try:
-            api = db.objects( API.default_tenant_api(tenant_id) ).fetch()[0]
+            api = db.objects( API.default_tenant_api(tenant_id) ).fetch_one()
         except IndexError:
-            raise falcon.HTTPBadRequest(description="Default API / Resource Server on every Tenant is needed")
+            raise falcon.HTTPBadRequest(description="Default Resource Server on every Tenant is needed")
 
         #get user
+        auth_username_field = application.get("auth_username_field")
         email = data.get("email")
         phone_number = data.get("phone_number")
         password = data.get("password")
+        user = None
+        user_queryset =  db.objects( User.all() ).filter(tenant_id__eq = tenant_id)
 
-        if phone_number is None and email is None:
-            raise falcon.HTTPBadRequest(description="Email or PhoneNumber is needed")
+        #check to know what 
+        if auth_username_field == 'email':
+            if email is None:
+                raise falcon.HTTPBadRequest(description="Email is needed")
+            
+            user = user_queryset.filter( email__eq = email ).fetch_one()
 
-        queryset =  db.objects( User.all() ).filter(tenant_id__eq = tenant_id)
+            #check if password is valid
+            if not User.is_valid_password(user.get("password"), password):
+                raise falcon.HTTPBadRequest(title="Login Failed",description="Valid Email and Password is needed")
+                
 
-        if email:
-            queryset = queryset.filter(email__eq = email)
-        elif phone_number:
-            queryset = queryset.filter(phone_number__eq = phone_number)
         
-        try:
-            user = queryset.fetch()[0]
-        except IndexError:
-            raise falcon.HTTPBadRequest(description="Insufficient user credentials. Valid Username and Password is needed")
+        elif auth_username_field == 'phone_number':
+            if phone_number is None:
+                raise falcon.HTTPBadRequest(description="Phone Number is needed")
+            
+            user = user_queryset.filter( phone_number__eq = phone_number ).fetch_one()
 
-        
-        #check if password is valid
-        if not User.is_valid_password(user.get("password"), password):
-            raise falcon.HTTPBadRequest(title="Login Failed",description="Valid Username and Password is needed")
-
-
+            #check if password is valid
+            if not User.is_valid_password(user.get("password"), password):
+                raise falcon.HTTPBadRequest(title="Login Failed",description="Valid Phone number and Password is needed")
+                
 
         #claims
         token_lifetime = api.get("token_lifetime_web")
@@ -273,17 +279,11 @@ class LoginUser(CreateResource,ClientMixin):
        
         user_id = user.get("id")
 
-        user_profile = {  "organization_id":None, "is_organization_admin":None,
-                      "is_staff":user.get("is_staff"),
-                      "is_super_user":user.get("is_super_user"),
-                     "first_name":user.get("first_name"), 
-                     "last_name": user.get("last_name") 
-                     }
+        user_profile = {  "organization_id":None, "is_organization_admin":None, "is_staff":user.get("is_staff"),
+                          "is_super_user":user.get("is_super_user"), "first_name":user.get("first_name"), 
+                          "last_name": user.get("last_name") 
+                        }
         
-
-
-
-       
         #make access and id tokens
 
         access_token_claims = { 
@@ -299,30 +299,28 @@ class LoginUser(CreateResource,ClientMixin):
         user_organization = None
         try:
             user_organization = db.objects( OrganizationUser.user_organization(user_id) ).fetch()[0]
-            
             user_profile.update({"organization_id": user_organization.get("organization_id"), "is_organization_admin": user_organization.get("is_admin")})
             access_token_claims.update({"user_organization_id": user_organization.get("organization_id"), "user_is_organization_admin": user_organization.get("is_admin")})
-        except:
+        except IndexError:
             pass
 
-        
         #get signning key. 
         api_signing_key = api.get("signing_secret")
         application_signing_key = None
 
         if not api_signing_key:
             #get application signing key
-            application_id = tenant.get("application_id")
-
-            application = db.objects( Application.get( application_id) ).fetch()[0]
+            #application_id = tenant.get("application_id")
+            #application = db.objects( Application.get( application_id) ).fetch()[0]
+            
             application_signing_key = application.get("signing_secret")
 
-            print (application_signing_key)
-            print("FOR APP")
+            #print (application_signing_key)
+            #print("FOR APP")
         
         secret_key = api_signing_key or application_signing_key
         
-        print (secret_key)
+        #print (secret_key)
 
 
 
