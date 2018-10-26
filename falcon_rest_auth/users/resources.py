@@ -287,12 +287,11 @@ class LoginUser(CreateResource,ClientMixin):
         #make access and id tokens
 
         access_token_claims = { 
-                    "iat":int(issued_at.timestamp()),
-                    "exp":int(expires_at.timestamp()) ,
-                    "client_id":client_id,
-                    "tenant_id":tenant_id,
-                   
-                    "sub":user_id
+                    "iat": int(issued_at.timestamp()),
+                    "exp": int(expires_at.timestamp()) ,
+                    #"client_id":client_id,
+                    "tenant_id": tenant_id,
+                    "sub": user_id
                 }
         
         #get user organization
