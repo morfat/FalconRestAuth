@@ -17,14 +17,11 @@ def init_db():
     from falcon_rest_auth.users import models
     from falcon_rest_auth.apis import models
     from falcon_rest_auth.emails import models
+    from falcon_rest_auth.roles import models
 
-    #drop_all = input("Drop all tables ? Yes / No\t")
-    """if drop_all == 'yes':
-        print ("Dropping Tables")
-        Base.metadata.drop_all(DB_ENGINE)
-    """
-   
+
     Base.metadata.create_all(DB_ENGINE)
+
 
 
 def init_app(db, app_name):
@@ -73,14 +70,6 @@ def init_app(db, app_name):
     if tenant_business_mode == 'B2B':
         created_organization = db.objects( Organization.insert() ).create(**{"name":"Default","tenant_id": tenant_id })
         db.objects( OrganizationUser.insert() ).create(**{"is_admin":True,"user_id": user_id, "organization_id": created_organization.get("id") })
-
-
-
-
-
-
-
-
 
 
 #Db Tables

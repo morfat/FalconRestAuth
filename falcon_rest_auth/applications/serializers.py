@@ -23,7 +23,12 @@ class ApplicationSerializer(BaseSerializer):
 
     
     
-  
+
+class ContentTypeSerializer(BaseSerializer):
+    name = serpy.StrField()
+    code = serpy.StrField()
+    application_id = serpy.StrField()
+    
 
 
 

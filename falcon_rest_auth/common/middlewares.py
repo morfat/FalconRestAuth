@@ -12,16 +12,18 @@ class CustomAuthMiddleWare(middlewares.AuthMiddleWare):
 
     def get_secret_key(self,req):
         host_name = req.forwarded_host
+        # print (host_name)
+
 
         db = req.context['db'] 
 
         
-        tenant = db.objects( Tenant.get(host_name=host_name)).fetch()[0]
+        tenant = db.objects( Tenant.get(host_name=host_name) ).fetch()[0]
         application = db.objects( Application.get(tenant.get("application_id") ) ).fetch()[0]
       
         key = application.get("signing_secret")
 
-        print (key)
+        # print (key)
 
         return key
 
