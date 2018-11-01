@@ -14,7 +14,8 @@ routes = urlpatterns(
         ('/users','users'),
         ('/apis','apis'),
         ('/emails','emails'),
-        ('/roles','roles')
+        ('/roles','roles'),
+        ('/teams', 'teams')
         ]
     )
 

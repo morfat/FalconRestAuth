@@ -18,6 +18,7 @@ def init_db():
     from falcon_rest_auth.apis import models
     from falcon_rest_auth.emails import models
     from falcon_rest_auth.roles import models
+    from falcon_rest_auth.teams import models
 
 
     Base.metadata.create_all(DB_ENGINE)
