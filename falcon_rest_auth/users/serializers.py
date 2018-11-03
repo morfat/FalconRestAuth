@@ -17,12 +17,17 @@ class UserSerializer(BaseSerializer):
     is_active =  serpy.BoolField(required = False) 
     is_staff =  serpy.BoolField(required = False) 
     is_super_user =  serpy.BoolField(required = False) 
+    full_name = serpy.MethodField()
+
+    def get_full_name(self, obj):
+        return "%s %s" %( obj.get("first_name"), obj.get("last_name") )
+
 
   
     class Meta:
 
         read_protected_fields = ('password',)
-        write_protected_fields = ()
+        write_protected_fields = ('full_name',)
 
 
 

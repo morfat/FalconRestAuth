@@ -21,6 +21,12 @@ class TeamRole(HasTenantMixin,Base):
     __table_args__ =  ( UniqueConstraint('role_id', 'team_id', name='_team_role'),
                        )
 
+class TeamUser(HasTenantMixin,Base):
+    user_id =  Column(String(50),ForeignKey('users.id') , nullable = False)
+    team_id =  Column(String(50),ForeignKey('teams.id') , nullable = False)
+
+    __table_args__ =  ( UniqueConstraint('user_id', 'team_id', name='_team_user'),
+                       )
 
 
 
