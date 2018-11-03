@@ -9,3 +9,7 @@ class TeamSerializer(BaseSerializer):
     name =  serpy.StrField()
     
 
+class TeamRoleSerializer(BaseSerializer):
+    name =  serpy.StrField()
+
+

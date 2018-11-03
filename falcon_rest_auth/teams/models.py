@@ -14,7 +14,7 @@ class Team(HasTenantMixin,Base):
                        )
     
 
-class TeamRoles(HasTenantMixin,Base):
+class TeamRole(HasTenantMixin,Base):
     role_id =  Column(String(50),ForeignKey('roles.id') , nullable = False)
     team_id =  Column(String(50),ForeignKey('teams.id') , nullable = False)
 
