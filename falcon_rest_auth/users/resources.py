@@ -7,6 +7,7 @@ from ..clients.models import Client
 from ..clients.mixins import ClientMixin
 from ..apis.models import API
 from ..applications.models import Application
+from ..sites.models import Site
 
 from ..organizations.models import Organization
 
@@ -29,8 +30,11 @@ from ..celery_proj.tasks import send_gmail
 class AuthMixin:
     """ to be used in auth classes for common methods """
 
-    def get_tenant(self,db,host_name):
-        return db.objects( Tenant.all() ).filter( host_name__eq=host_name ).fetch_one()
+    def get_site(self, db, host_name):
+        return db.objects( Site.all() ).filter( host_name__eq=host_name).fetch_one()
+
+    def get_tenant(self,db,tenant_id):
+        return db.objects( Tenant.get(tenant_id) ).fetch_one()
     
     def get_appication(self, db, application_id):
         return db.objects( Application.all() ).filter( id__eq=application_id).fetch_one()
@@ -123,18 +127,9 @@ class RetrieveUpdateUser(RetrieveUpdateResource):
 
 class RegisterUser(CreateResource, ClientMixin, AuthMixin):
     """ 
+    To be used by unauthenticated signup
 
-    Use this endpoint to create new users only. For unauthenticated use only.
-
-    #we expect multisite logins here irrespective of same client
-    Hence the main client cas to be is_first_party = True
-    
-    ON SPA if want to pull clients, create an endpoint to get primary_clisne i.e first_party_client client based on
-    domain name
-    e.g  #tenant = db.objects( Tenant.get(host_name=req.forwarded_host)).fetch()[0]
-
-
-    Then get tenant from the client.
+    host_name identifies the site for the specified tenant.
 
     """
 
@@ -155,8 +150,12 @@ class RegisterUser(CreateResource, ClientMixin, AuthMixin):
         #client = self.get_client(db,client_id)
         host_name = posted_data.pop("host_name")
         agree = posted_data.pop("agree", None)
-        tenant = self.get_tenant(db,host_name)
-        tenant_id = tenant.get("id")
+        site = self.get_site(db,host_name)
+    
+        tenant_id = site.get("tenant_id")
+
+        tenant = self.get_tenant(db,tenant_id)
+       
         application = self.get_appication(db,application_id=tenant.get("application_id") )
         auth_username_field = application.get("auth_username_field")
 
@@ -238,7 +237,7 @@ class RegisterUser(CreateResource, ClientMixin, AuthMixin):
 
 
 
-class LoginUser(CreateResource,ClientMixin):
+class LoginUser(CreateResource,ClientMixin, AuthMixin):
     
     serializer_class = LoginUserSerializer
     login_required = False
@@ -251,8 +250,12 @@ class LoginUser(CreateResource,ClientMixin):
 
         #get client
         host_name = posted_data.get("host_name")
-        tenant = db.objects( Tenant.all() ).filter( host_name__eq=host_name ).fetch_one()
-        tenant_id = tenant.get("id")
+        site = self.get_site(db,host_name)
+    
+        tenant_id = site.get("tenant_id")
+
+        tenant = self.get_tenant(db,tenant_id)
+        
         application_id = tenant.get("application_id")
         application = db.objects( Application.all() ).filter( id__eq=application_id).fetch_one()
         
@@ -308,13 +311,18 @@ class LoginUser(CreateResource,ClientMixin):
                         }
         
         #make access and id tokens
+        """ @TODO,
+        1.
+        for multisite auth/logins. see how to provide list of sites as audience for the token.
+        and also add site_id in token
+        """
 
         access_token_claims = { 
                     "iat": int(issued_at.timestamp()),
-                    "exp": int(expires_at.timestamp()) ,
-                    #"client_id":client_id,
+                    "exp": int(expires_at.timestamp()),
                     "tenant_id": tenant_id,
                     "sub": user_id
+                    
                 }
         
         #get user organization

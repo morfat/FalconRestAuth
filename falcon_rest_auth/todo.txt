@@ -1,0 +1,3 @@
+ 1. for multisite auth/logins. see how to provide list of sites as audience for the token. and also add site_id in token.
+ this implement when getting token.
+ 
