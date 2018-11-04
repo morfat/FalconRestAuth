@@ -31,7 +31,12 @@ class AuthMixin:
     """ to be used in auth classes for common methods """
 
     def get_site(self, db, host_name):
-        return db.objects( Site.all() ).filter( host_name__eq=host_name).fetch_one()
+        site = db.objects( Site.all() ).filter( host_name__eq=host_name).fetch_one()
+        if site is None:
+            raise falcon.HTTPBadRequest( title="Site host not Found.",
+                                             description="Please configure the site host name"
+                                            )
+        return site
 
     def get_tenant(self,db,tenant_id):
         return db.objects( Tenant.get(tenant_id) ).fetch_one()
