@@ -3,6 +3,8 @@
 from falchemy_rest import middlewares
 
 from ..tenants.models import Tenant
+from ..sites.models import Site
+
 from ..applications.models import Application
 
 
@@ -17,8 +19,8 @@ class CustomAuthMiddleWare(middlewares.AuthMiddleWare):
 
         db = req.context['db'] 
 
-        
-        tenant = db.objects( Tenant.get(host_name=host_name) ).fetch()[0]
+        site =  db.objects( Site.all() ).filter(host_name__eq=host_name).fetch_one()
+        tenant = db.objects( Tenant.get(site.get("tenant_id")) ).fetch_one()
         application = db.objects( Application.get(tenant.get("application_id") ) ).fetch()[0]
       
         key = application.get("signing_secret")
