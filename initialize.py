@@ -12,6 +12,7 @@ from falchemy_rest.sql import Db
 def init_db():
     from falcon_rest_auth.applications import models
     from falcon_rest_auth.tenants import models
+    from falcon_rest_auth.sites import models
     from falcon_rest_auth.organizations import models
     from falcon_rest_auth.clients import models
     from falcon_rest_auth.users import models
@@ -28,6 +29,7 @@ def init_db():
 def init_app(db, app_name):
     from falcon_rest_auth.applications.models import Application
     from falcon_rest_auth.tenants.models import Tenant
+    from falcon_rest_auth.sites.models import Site
     from falcon_rest_auth.apis.models import API
     from falcon_rest_auth.organizations.models import Organization
     from falcon_rest_auth.users.models import User, OrganizationUser
@@ -49,14 +51,19 @@ def init_app(db, app_name):
     #create super tenant
     application_id = created_app.get("id")
     created_tenant = db.objects( Tenant.insert() ).create(**{"is_super_tenant": True,"name":"Default","business_mode": tenant_business_mode,
-                                            "application_id": application_id, "host_name":"http://localhost:4200"
+                                            "application_id": application_id
                                             })
+   
     
     #create default api
     tenant_id = created_tenant.get("id")
     created_api = db.objects( API.insert() ).create(**{"is_default": True,"name":"Default","description": "Default Generated",
                                             "uri": api_uri,"tenant_id": tenant_id
                                             })
+
+    #create default site with default domain name
+    created_site = db.objects( Site.insert() ).create(**{ "tenant_id": tenant_id, "domain_name":"admin.localhost" })
+
     #create user
     user_d = { "password": password , "is_staff": True, "is_super_user": True,
                "is_active": True, auth_username_field: username,"tenant_id": tenant_id

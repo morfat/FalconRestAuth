@@ -2,7 +2,7 @@
 import falcon
 
 from .models import Tenant
-from .serializers import TenantSerializer
+from .serializers import *
 
 from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
 
@@ -31,7 +31,6 @@ class RetrieveUpdateTenant(RetrieveUpdateResource):
     serializer_class = TenantSerializer
 
 
-    
 
 
     

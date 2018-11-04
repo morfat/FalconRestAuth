@@ -13,8 +13,7 @@ class TenantSerializer(BaseSerializer):
     host_name = serpy.StrField()
     business_mode = serpy.StrField()  #B2B or B2C
    
-   
-    
+
     
   
 
