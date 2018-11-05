@@ -34,7 +34,6 @@ class RetrieveUpdateContentType(RetrieveUpdateResource):
     serializer_class = ContentTypeSerializer
 
 
-    
 
 
     
