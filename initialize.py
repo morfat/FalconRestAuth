@@ -11,6 +11,8 @@ from falchemy_rest.sql import Db
 
 def init_db():
     from falcon_rest_auth.applications import models
+    from falcon_rest_auth.content_types import models
+    from falcon_rest_auth.permissions import models
     from falcon_rest_auth.tenants import models
     from falcon_rest_auth.sites import models
     from falcon_rest_auth.organizations import models

@@ -31,7 +31,7 @@ class CustomAuthMiddleWare(middlewares.AuthMiddleWare):
 
         # print (key)
 
-        return key
+        return ( key, tenant, application )
 
     
 

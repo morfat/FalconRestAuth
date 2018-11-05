@@ -1,8 +1,8 @@
 
 import falcon
 
-from .models import Application, ContentType
-from .serializers import ApplicationSerializer,ContentTypeSerializer
+from .models import Application
+from .serializers import ApplicationSerializer
 
 
 from falchemy_rest.resources import ListCreateResource ,RetrieveUpdateResource
@@ -27,14 +27,6 @@ class RetrieveUpdateApplication(RetrieveUpdateResource):
 
     serializer_class = ApplicationSerializer
 
-
-class ListCreateApplicationContentType(ListCreateResource):
-     
-    login_required = True
-    model = ContentType
-    serializer_class = ContentTypeSerializer
-
-    
 
 
     
