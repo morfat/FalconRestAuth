@@ -15,23 +15,43 @@ class CustomAuthMiddleWare(middlewares.AuthMiddleWare):
 
     def get_secret_key(self,req):
         host_name = req.forwarded_host
-        print (host_name)
+        db =  self.get_db(req)
 
+        site = self.get_site(db, host_name)
 
-        db = req.context['db'] 
-
-        site =  db.objects( Site.all() ).filter(host_name__eq=host_name).fetch_one()
         if not site:
             raise falcon.HTTPForbidden(description=" Requests from this site not configured. ")
 
-        tenant = db.objects( Tenant.get(site.get("tenant_id")) ).fetch_one()
-        application = db.objects( Application.get(tenant.get("application_id") ) ).fetch()[0]
-      
-        key = application.get("signing_secret")
+        tenant = self.get_authenticated_tenant(db, site.get("tenant_id") )
+        application = self.get_authenticated_app(db, tenant.get("application_id") )
 
-        # print (key)
-
-        return ( key, tenant, application )
-
+        #add the tenant and application to context
+        req.context["authenticated_app"] = application
+        req.context["authenticated_tenant"] = tenant
+        return application.get("signing_secret")
     
+    def get_site(self,db, host_name):
+        return db.objects( Site.all() ).filter(host_name__eq=host_name).fetch_one()
+    
+    def get_authenticated_tenant(self,db, tenant_id):
+        return db.objects( Tenant.get(tenant_id) ).fetch_one()
+
+    def get_authenticated_app(self,db,application_id):
+        return db.objects( Application.get(application_id ) ).fetch_one()
+
+
+"""
+class TenantResourceValidationMiddleWare:
+    
+    Called after 'CustomAuthMiddleWare '
+
+    1. To validate that resource tenant is correct as required
+    2. For SUPER tenants, check if they have enough access to the other Tenants (for super tenant paths)
+    3. To set the correct resource tenant
+    
+
+    pass
+
+"""
+
 
